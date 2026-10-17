@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Note Blocks</title>
+  <meta name="description" content="Build music one note at a time: click a line or space on the staff to place a note and hear it on the piano.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='11' width='26' height='16' rx='3' fill='%232f6fde'/%3E%3Crect x='7' y='6' width='7' height='6' rx='2' fill='%232f6fde'/%3E%3Crect x='18' y='6' width='7' height='6' rx='2' fill='%232f6fde'/%3E%3Cellipse cx='14' cy='21' rx='4.2' ry='3' fill='white' transform='rotate(-20 14 21)'/%3E%3C/svg%3E">
+  <link rel="preload" href="assets/fonts/noteblocks-music.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div class="file-warning" id="file-warning" hidden>
+    Browsers block this app when it is opened straight from a file. Start it with <code>npm start</code>
+    (or any static web server) and open <code>http://localhost:8080</code> instead.
+  </div>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-warning').hidden = false;
+  </script>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 48 40" aria-hidden="true">
+          <rect x="2" y="22" width="20" height="14" rx="3" class="lg-a"/>
+          <rect x="5" y="18" width="5" height="5" rx="1.5" class="lg-a"/>
+          <rect x="14" y="18" width="5" height="5" rx="1.5" class="lg-a"/>
+          <rect x="24" y="22" width="20" height="14" rx="3" class="lg-b"/>
+          <rect x="27" y="18" width="5" height="5" rx="1.5" class="lg-b"/>
+          <rect x="36" y="18" width="5" height="5" rx="1.5" class="lg-b"/>
+          <rect x="13" y="6" width="20" height="14" rx="3" class="lg-c"/>
+          <rect x="16" y="2" width="5" height="5" rx="1.5" class="lg-c"/>
+          <rect x="25" y="2" width="5" height="5" rx="1.5" class="lg-c"/>
+          <ellipse cx="21" cy="14.5" rx="3.6" ry="2.6" transform="rotate(-20 21 14.5)" class="lg-note"/>
+          <rect x="23.6" y="5" width="1.3" height="9.5" class="lg-note"/>
+        </svg>
+        <div>
+          <h1>Note Blocks</h1>
+          <p class="tagline">Build music one note at a time</p>
+        </div>
+      </div>
+      <div class="transport" role="group" aria-label="Playback">
+        <button id="play" class="btn primary play" title="Play / stop (Space)">
+          <svg viewBox="0 0 20 20" aria-hidden="true" class="ic-play"><path d="M5 3.5v13l11-6.5z"/></svg>
+          <svg viewBox="0 0 20 20" aria-hidden="true" class="ic-stop"><rect x="4.5" y="4.5" width="11" height="11" rx="1.5"/></svg>
+          <span class="lbl">Play</span>
+        </button>
+        <button id="loop" class="btn toggle" aria-pressed="false" title="Loop playback (L) — keep building while it plays!">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 9a5 5 0 0 1 9-3h-2.5v2H16V2.5h-2v2A7 7 0 0 0 2 9zm12 2a5 5 0 0 1-9 3h2.5v-2H4v5.5h2v-2A7 7 0 0 0 18 11z"/></svg>
+          <span class="lbl">Loop</span>
+        </button>
+        <button id="metronome" class="btn toggle" aria-pressed="false" title="Metronome click on every beat (M)">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 2h4l3.6 15H4.4zM9.3 4l-.7 3h2.8l-.7-3zm4.2 1.8 2.4-2.4 1.1 1.1-2.6 2.6zM7.2 11.5l-1 4h7.6l-.7-3.1-3.7 3.2-1.1-1.2 4.4-3.8-.3-1.1z"/></svg>
+          <span class="lbl">Metronome</span>
+        </button>
+      </div>
+      <div class="actions" role="group" aria-label="Edit">
+        <button id="undo" class="btn icon" title="Undo (Ctrl+Z)" aria-label="Undo">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 5V2L2 7l5.5 5V9H11a4 4 0 0 1 0 8H8v2h3a6 6 0 0 0 0-12H7.5z"/></svg>
+        </button>
+        <button id="redo" class="btn icon" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 5V2L18 7l-5.5 5V9H9a4 4 0 0 0 0 8h3v2H9A6 6 0 0 1 9 7h3.5z"/></svg>
+        </button>
+        <label class="select-wrap examples">
+          <span class="sr-only">Load an example</span>
+          <select id="examples"><option value="">Examples…</option></select>
+        </label>
+        <button id="share" class="btn" title="Copy a link to your music">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M11 3h6v6h-2V6.4l-5.3 5.3-1.4-1.4L13.6 5H11zM4 5h5v2H5v8h8v-4h2v6H3V5z"/></svg>
+          <span class="lbl">Share</span>
+        </button>
+        <button id="clear" class="btn" title="Remove every note">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 2h6l1 2h4v2H2V4h4zM4 7h12l-1 11H5zm4 2v7h1.5V9zm2.5 0v7H12V9z"/></svg>
+          <span class="lbl">Clear</span>
+        </button>
+        <button id="theme" class="btn icon" title="Switch light / dark" aria-label="Switch light or dark theme">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 2v12a6 6 0 0 1 0-12z"/></svg>
+        </button>
+        <button id="help" class="btn icon" title="How to use &amp; keyboard shortcuts (?)" aria-label="Help">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm.1 12.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM10 4.6c1.9 0 3.3 1.2 3.3 2.9 0 1.4-.8 2.1-1.7 2.7-.7.5-.9.7-.9 1.4v.5H8.9v-.6c0-1.2.5-1.8 1.4-2.4.7-.5 1.1-.8 1.1-1.5 0-.7-.6-1.2-1.4-1.2-.9 0-1.5.6-1.6 1.4H6.6C6.7 5.9 8 4.6 10 4.6z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="settings panel" aria-label="Music settings">
+      <div class="field">
+        <span class="label" id="clef-label">Clef</span>
+        <div class="seg" id="clef" role="radiogroup" aria-labelledby="clef-label">
+          <button role="radio" data-clef="treble" aria-checked="true" title="Treble clef (G clef): higher notes">
+            <span class="mg">&#xE050;</span> Treble
+          </button>
+          <button role="radio" data-clef="bass" aria-checked="false" title="Bass clef (F clef): lower notes">
+            <span class="mg">&#xE062;</span> Bass
+          </button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label" for="key">Key signature</label>
+        <span class="select-wrap"><select id="key"></select></span>
+      </div>
+      <div class="field">
+        <label class="label" for="time">Time signature</label>
+        <span class="select-wrap"><select id="time"></select></span>
+      </div>
+      <div class="field tempo">
+        <label class="label" for="tempo">Tempo</label>
+        <div class="tempo-row">
+          <button class="btn icon small" id="tempo-down" aria-label="Slower" title="Slower">−</button>
+          <input type="range" id="tempo" min="40" max="208" step="1" value="96" aria-describedby="tempo-out">
+          <button class="btn icon small" id="tempo-up" aria-label="Faster" title="Faster">+</button>
+          <output id="tempo-out" for="tempo"></output>
+        </div>
+      </div>
+    </section>
+
+    <section class="palette panel" aria-label="Note blocks">
+      <div class="palette-title">
+        <span class="label">Note blocks</span>
+        <span class="hint">pick one, then click the staff</span>
+      </div>
+      <div class="palette-row">
+        <div class="bricks" id="durations" role="radiogroup" aria-label="Note length"></div>
+        <div class="mods">
+          <div class="mod-group" role="group" aria-label="Modifiers">
+            <button class="chip" id="dot" aria-pressed="false" title="Dotted: adds half the length again (.)">
+              <span class="mg big">&#xE1E7;</span><span>Dot</span>
+            </button>
+            <button class="chip" id="rest" aria-pressed="false" title="Place rests (silence) instead of notes (R)">
+              <span class="mg">&#xE4E5;</span><span>Rest</span>
+            </button>
+            <button class="chip" id="stack" aria-pressed="false" title="Stack notes on top of an existing note to build chords (S)">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><ellipse cx="9" cy="5.5" rx="3.4" ry="2.4" transform="rotate(-20 9 5.5)"/><ellipse cx="9" cy="10.5" rx="3.4" ry="2.4" transform="rotate(-20 9 10.5)"/><ellipse cx="9" cy="15.5" rx="3.4" ry="2.4" transform="rotate(-20 9 15.5)"/></svg>
+              <span>Chord</span>
+            </button>
+          </div>
+          <div class="mod-group" id="accidentals" role="radiogroup" aria-label="Accidental">
+            <button class="chip" role="radio" data-acc="" aria-checked="true" title="Follow the key signature (K)"><span class="txt">Key</span></button>
+            <button class="chip" role="radio" data-acc="sharp" aria-checked="false" title="Sharp: a half step higher (#)"><span class="mg">&#xE262;</span></button>
+            <button class="chip" role="radio" data-acc="flat" aria-checked="false" title="Flat: a half step lower (-)"><span class="mg">&#xE260;</span></button>
+            <button class="chip" role="radio" data-acc="natural" aria-checked="false" title="Natural: cancels sharps and flats (=)"><span class="mg">&#xE261;</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="main">
+      <section class="score-panel panel" aria-label="Your music">
+        <div class="score-toolbar">
+          <div class="view-toggles" role="group" aria-label="Show">
+            <button class="chip small" id="v-names" aria-pressed="true" title="Show letter names under the notes">Note names</button>
+            <button class="chip small" id="v-blocks" aria-pressed="true" title="Show each note as a block of time">Beat blocks</button>
+            <button class="chip small" id="v-count" aria-pressed="true" title="Show how to count the rhythm">Counting</button>
+            <label class="select-wrap small">
+              <span class="sr-only">Note colours</span>
+              <select id="v-colors" title="Colour the notes">
+                <option value="pitch">Colour by pitch</option>
+                <option value="length">Colour by length</option>
+                <option value="off">No colours</option>
+              </select>
+            </label>
+          </div>
+          <div class="zoom" role="group" aria-label="Zoom">
+            <button class="btn icon small" id="zoom-out" aria-label="Smaller staff" title="Smaller">−</button>
+            <button class="btn icon small" id="zoom-in" aria-label="Bigger staff" title="Bigger">+</button>
+          </div>
+        </div>
+        <div class="score-scroll" id="score-scroll">
+          <svg id="score" class="score" role="application" tabindex="0"
+               aria-label="Music staff. Click a line or space to place a note. Type letters A to G to add notes."
+               aria-describedby="status"></svg>
+        </div>
+        <div class="status" id="status" aria-live="polite"></div>
+        <div class="piano-head">
+          <span class="label">Piano</span>
+          <label class="switch"><input type="checkbox" id="piano-adds" checked> <span>Keys add notes to the staff</span></label>
+          <span class="audio-status" id="audio-status"></span>
+        </div>
+        <div class="piano-scroll"><div class="piano" id="piano"></div></div>
+      </section>
+
+      <aside class="learn" aria-label="Learn">
+        <div class="card tip" id="tip" aria-live="polite"></div>
+        <div class="card quests" id="quests"></div>
+        <div class="card" id="card-time"></div>
+        <div class="card" id="card-key"></div>
+        <div class="card" id="card-staff"></div>
+        <div class="card" id="card-tempo"></div>
+      </aside>
+    </div>
+
+    <footer class="footer">
+      Piano: <a href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noopener">Salamander Grand Piano</a> by Alexander Holm (CC BY 3.0).
+      Music symbols from <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg (SIL OFL 1.1).
+    </footer>
+  </div>
+
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <form method="dialog">
+      <h2 id="help-title">How Note Blocks works</h2>
+      <ol class="how">
+        <li><strong>Pick a block</strong> — whole, half, quarter, eighth or sixteenth note (or a rest).</li>
+        <li><strong>Click a line or space</strong> on the staff. The note lands in the next free spot and you hear it.</li>
+        <li><strong>Fill each measure</strong> with exactly the beats the time signature asks for. The beat blocks under the staff show what’s left.</li>
+        <li><strong>Click a note</strong> to select it, then drag it up or down (or use ↑ ↓). Turn on <em>Chord</em> to stack notes.</li>
+        <li><strong>Play</strong> it back. With <em>Loop</em> on, keep building while it plays.</li>
+      </ol>
+      <h3>Keyboard shortcuts</h3>
+      <dl class="keys">
+        <dt><kbd>A</kbd>–<kbd>G</kbd></dt><dd>Add that note</dd>
+        <dt><kbd>1</kbd>–<kbd>5</kbd></dt><dd>Whole, half, quarter, eighth, sixteenth</dd>
+        <dt><kbd>.</kbd></dt><dd>Dotted on/off</dd>
+        <dt><kbd>R</kbd></dt><dd>Rest on/off</dd>
+        <dt><kbd>S</kbd></dt><dd>Chord stacking on/off</dd>
+        <dt><kbd>#</kbd> <kbd>-</kbd> <kbd>=</kbd> <kbd>K</kbd></dt><dd>Sharp, flat, natural, follow key</dd>
+        <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Move the selected note (Shift: an octave)</dd>
+        <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Select the previous / next note</dd>
+        <dt><kbd>Backspace</kbd></dt><dd>Delete the selected (or last) note</dd>
+        <dt><kbd>Space</kbd></dt><dd>Play / stop</dd>
+        <dt><kbd>L</kbd> <kbd>M</kbd></dt><dd>Loop, metronome</dd>
+        <dt><kbd>Ctrl</kbd>+<kbd>Z</kbd></dt><dd>Undo (add Shift to redo)</dd>
+        <dt><kbd>Esc</kbd></dt><dd>Deselect / stop</dd>
+      </dl>
+      <div class="dialog-actions"><button class="btn primary" value="close">Got it</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

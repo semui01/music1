@@ -1,0 +1,11 @@
+{
+  "name": "note-blocks",
+  "version": "1.0.0",
+  "description": "Interactive music learning app: build music like blocks on a staff and hear it on a piano.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs"
+  }
+}
