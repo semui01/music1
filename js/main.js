@@ -891,14 +891,14 @@ function toggleView(key) {
   saveSoon();
 }
 
+/** Only set the theme once the user has picked one; otherwise follow the system (or host page). */
 function applyTheme() {
-  const t = state.view.theme;
-  if (t) document.documentElement.setAttribute('data-theme', t);
-  else document.documentElement.removeAttribute('data-theme');
+  if (state.view.theme) document.documentElement.setAttribute('data-theme', state.view.theme);
 }
 
 function toggleTheme() {
-  const dark = state.view.theme ? state.view.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  const attr = document.documentElement.getAttribute('data-theme');
+  const dark = attr ? attr === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
   state.view.theme = dark ? 'light' : 'dark';
   applyTheme();
   saveSoon();
@@ -1633,6 +1633,8 @@ async function init() {
 
   const origin = loadSaved();
   applyTheme();
+  // Inside a frame the address bar shows the host page, so a share link would not work.
+  if (window.self !== window.top) $('#share').hidden = true;
   buildSettings();
   buildPalette();
   buildPiano();

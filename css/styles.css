@@ -153,6 +153,10 @@ a {
   color: var(--accent);
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -192,7 +196,9 @@ kbd {
 .app {
   max-width: 1480px;
   margin: 0 auto;
-  padding: 14px 16px 24px;
+  padding-block: 14px 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1099,7 +1105,7 @@ svg.score.cur-drag {
   font-size: calc(var(--S) * 0.86);
   font-weight: 800;
   text-anchor: middle;
-  fill: #fff;
+  fill: var(--accent-ink);
 }
 
 .score .band-line {
@@ -1431,7 +1437,7 @@ svg.score.cur-drag {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 22px;
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
   transform: translate(-50%, 20px);
   opacity: 0;
   pointer-events: none;
@@ -1524,7 +1530,7 @@ dialog h3 {
   }
 
   .app {
-    padding: 10px 16px 20px;
+    padding-block: 10px 20px;
     gap: 10px;
   }
 
